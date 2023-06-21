@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1d7524b7-6922-4d5b-8ca9-e006c170bce1" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="ChildFlow" doc:id="40abbe3c-9758-4508-8d92-d6b5ab03d20d" >
+		<logger level="INFO" doc:name="Logger" doc:id="fd363183-d118-4da4-aa71-6b5444cf2f64" message="Logger2"/>
+		<ee:transform doc:name="Transform Message" doc:id="ffd4ab8a-6088-4451-a1e2-26fbbcabcb6b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	divide: attributes.uriParams.num1 as Number/attributes.uriParams.num2 as Number
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c19591bb-33fb-4def-92d3-b58336d68dbe" message="Logger3"/>
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9863679b-053f-422b-8013-1790bace716d" >
+				<logger level="INFO" doc:name="Logger" doc:id="89ffbbc9-cf50-441b-8963-64976797b502" message="On error continue"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="MainFlow" doc:id="bbcde959-3080-49dd-a1bd-47a0b19f70da" >
+		<http:listener doc:name="Listener" doc:id="f1d04683-ee51-4929-b932-9c7518ba16c2" config-ref="HTTP_Listener_config" path="/{num1}/{num2}"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ee19991c-e782-4b99-a7c2-ecaaa764868b" message="Logger1"/>
+		<flow-ref doc:name="Flow Reference" doc:id="c8e389e9-982a-4f61-ab8e-f1c6459c560e" name="ChildFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f6200a2f-0efb-46c3-bec1-0bb0da8473d6" message="Logger4"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e432044f-92f0-4a7b-b885-7de28be8c855" >
+				<logger level="INFO" doc:name="Logger" doc:id="13c9917e-ec1f-4508-aa80-f94a160ba1cd" message="On Error Propagate"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
